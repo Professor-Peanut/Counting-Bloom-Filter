@@ -7,6 +7,14 @@
   AUTHOR
       Professor Peanut
  
+  USAGE
+      Important! To keep things simple this class does NOT include a hash function.
+      All function params are assumed to be already hashed.
+ 
+      !!Attention!!
+      This class does not protect from misuse! Removing the same key twice,
+      or removing a non-existent key may break functionality.
+ 
   HISTORY
       0.1.0  Initial release
  
@@ -28,16 +36,31 @@ template <class Inttype=unsigned>
 class CountingBloomFilter
 {
 private:
-    int counters[sizeof(Inttype) * 8] = {0};
+    static constexpr int N_SLOTS = sizeof(Inttype) * 8;
+    
+    int counters[N_SLOTS] = {0};
 
     Inttype bitmap = 0;
     
 public:
-    void put(Inttype key) {}
+    void put(Inttype hash)
+    {
+        bitmap |= hash;
+        for (int i=0; i<N_SLOTS; i+=8)
+        {
+            counters[i+0] += hash & 1; hash >>= 1;
+        }
+    }
     
-    void remove(Inttype key) {}
+    void remove(Inttype hash)
+    {
+        
+    }
     
-    bool maybeHave(Inttype key) const {}
+    bool maybeHave(Inttype hash) const
+    {
+        
+    }
 };
 
 
@@ -46,7 +69,7 @@ constexpr unsigned cbf__test()
 {
     CountingBloomFilter bloomTest;
     
-    return 1;
+    return 0;
 }
 static constexpr unsigned res = cbf__test();
 
