@@ -18,7 +18,7 @@
   HISTORY
       0.1.0  Initial release
  
-  GIBS
+  PEANUTS
       BTC:  1H1RrCrEgUXDFibpaJciLjS9r7upQs6XPc
       BCH:  qzgfgd6zen70mfzasjtc4rx9m7fhz65zyg0n6v3sdh
       BSV:  15dtAGzzMf6yWF82aYuGKZYMCyP5HoWVLP
@@ -43,23 +43,30 @@ private:
     Inttype bitmap = 0;
     
 public:
-    void put(Inttype hash)
+    constexpr void put(Inttype hash)
     {
         bitmap |= hash;
         for (int i=0; i<N_SLOTS; i+=8)
         {
             counters[i+0] += hash & 1; hash >>= 1;
+            counters[i+1] += hash & 1; hash >>= 1;
+            counters[i+2] += hash & 1; hash >>= 1;
+            counters[i+3] += hash & 1; hash >>= 1;
+            counters[i+4] += hash & 1; hash >>= 1;
+            counters[i+5] += hash & 1; hash >>= 1;
+            counters[i+6] += hash & 1; hash >>= 1;
+            counters[i+7] += hash & 1; hash >>= 1;
         }
     }
     
-    void remove(Inttype hash)
+    constexpr void remove(Inttype hash)
     {
         
     }
     
-    bool maybeHave(Inttype hash) const
+    constexpr bool maybeHave(Inttype hash) const
     {
-        
+        return !((hash&bitmap) ^ hash);
     }
 };
 
@@ -69,11 +76,21 @@ constexpr unsigned cbf__test()
 {
     CountingBloomFilter bloomTest;
     
-    return 0;
+    bloomTest.put(0x06);
+    const bool TEST_PUT_OK = bloomTest.maybeHave(0x06);
+    const bool TEST_SURE_DOESNT_HAVE = bloomTest.maybeHave(0x01) == false;
+    const bool TEST_OVERLAPPING_BITS = false;
+    
+    return TEST_PUT_OK
+         | (TEST_SURE_DOESNT_HAVE << 1)
+         | (TEST_OVERLAPPING_BITS << 2)
+         ;
 }
-static constexpr unsigned res = cbf__test();
+static constexpr unsigned resCBF = cbf__test();
 
-static_assert(res& 1, "");
+static_assert(resCBF& 1, "Didn't work");
+static_assert(resCBF& 2, ".maybeHave() returned 'true' when the key clearly didn't exist");
+static_assert(resCBF& 4, "");
 
 
 #endif // COUNTING_BLOOM_FILTER_H
